@@ -1,0 +1,4 @@
+name = Job portal
+description = Job portal for FOSSEE recruitments.
+package = Job Portal
+core = 7.x

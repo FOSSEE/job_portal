@@ -1,0 +1,202 @@
+<?php 
+    function job_portal_permission() {
+        return array(
+            "access job_portal" => array(
+                "title" => t("Access Job Portal"),
+                "description" => t("Allows users to view job postings.")
+            ),
+        );
+    }
+
+    function job_portal_menu() {
+        $items = array();
+        $items["jobs"] = array(
+            "title" => "FOSSEE Job Portal",
+            "page callback" => "job_portal_page",
+            "access arguments" => array("access job_portal"),
+            "type" => MENU_CALLBACK,
+        );
+        return $items;
+    }
+
+    function job_portal_application_form($form, &$form_state) {
+        $form = array();
+        $form["wrapper"] = array(
+            "#type" => "fieldset",
+            "#title" => t("Application form"),
+            "#collapsible" => TRUE,
+        );
+        $form["wrapper"]["name"] = array(
+            "#type" => "textfield",
+            "#title" => t("Name"),
+            "#description" => t("Please enter your full name."),
+            "#required" => TRUE,
+        );
+        $form["wrapper"]["contact"] = array(
+            "#type" => "textfield",
+            "#title" => t("Contact Number"),
+            "#description" => t("Please enter your contact number."),
+            "#required" => TRUE,
+        );
+        $form["wrapper"]["email"] = array(
+            "#type" => "textfield",
+            "#title" => t("Email"),
+            "#description" => t("Please enter your e-mail id."),
+            "#required" => TRUE,
+        );
+        $form["wrapper"]["resume"] = array(
+            "#type" => "file",
+            "#title" => t("Resume" . required_star()),
+            "#description" => t("Please upload your resume [pdf]."),
+        );
+        $form["wrapper"]["submit"] = array(
+            "#type" => "submit",
+            "#value" => "Submit Application"
+        );
+        return $form;
+    }
+
+    function job_portal_application_form_validate($form, &$form_state) {
+      $file = file_save_upload('resume', array(
+        // Validates file is really an image.
+        // 'file_validate_is_image' => array(),
+        // Validate extensions.
+        'file_validate_extensions' => array('pdf'),
+      ));
+      // If the file passed validation:
+      if ($file) {
+        // Move the file into the Drupal file system.
+        if ($file = file_move($file, 'public://')) {
+          // Save the file for use in the submit handler.
+          $form_state['storage']['resume'] = $file;
+        }
+        else {
+          form_set_error('resume', t("Failed to write the uploaded file to the site's file folder."));
+        }
+      }
+      else {
+        form_set_error('resume', t('No file was uploaded.'));
+      }
+    }
+
+    function job_portal_application_form_submit($form, &$form_state) {
+        $v = $form_state["values"];
+        $resume = $form_state["storage"]["resume"];
+        $query = "
+            INSERT INTO job_portal_applications
+            (name, contact, email, resume)
+            VALUES
+            (:name, :contact, :email, :resume)
+        ";
+        $args = array(
+            ":name" => $v["name"], 
+            ":contact" => $v["contact"],
+            ":email" => $v["email"], 
+            ":resume" => $resume->filename
+        );
+        /* storing the row id in $result */
+        $result = db_query($query, $args, array('return' => Database::RETURN_INSERT_ID));
+        
+        /* moving the file to uploads/resumes */
+        $base_path = $_SERVER['DOCUMENT_ROOT'] . base_path();
+        $uploads_dir = $base_path  . "uploads/resumes";
+        if(!file_exists($uploads_dir . "/{$result}/")) {
+            mkdir($uploads_dir . "/{$result}/", 0755, TRUE);
+        }
+        file_unmanaged_move($resume->uri, $uploads_dir . "/{$result}/{$resume->filename}");
+        
+        /* preparing to send mail */
+        $from = "jayaram@iitb.ac.in";
+        $to = "rush2jrp@gmail.com";
+        $cc = "jayaram@iitb.ac.in";
+        $bcc = "pratham920@gmail.com";
+        $subject = "Job Application - Python Developer";
+        $message = "
+            <p><strong>{$v['name']}</strong> has applied for 
+            the post of <strong>Python Developer</strong>.</p>
+            <table border='1' width='740px'>
+                <tr><td>Name</td><td>{$v['name']}</td></tr>
+                <tr><td>Contact</td><td>{$v['contact']}</td></tr>
+                <tr><td>Email</td><td>{$v['email']}</td></tr>
+            </table>
+            <p><em>Please check the resume attached to this mail.</em></p>
+        ";
+        $file = $uploads_dir . "/{$result}/" . $resume->filename;
+        $mail_status = send_mail_attachment($from, $to, $cc, $bcc, $subject, $message, $file);
+        if(!$mail_status) {
+            drupal_set_message("An error occurred while sending mail.", "error");
+        } else {
+            drupal_set_message("We have received your application. Thank you!", "status");
+        }
+        file_delete($resume);
+        unset($form["storage"]["resume"]);
+    }
+
+    function job_portal_page() {
+        $collapser_header = "Job Details";
+        $collapser_content = "
+            <strong>Position</strong>: Python Developer<br>
+            <strong>Description</strong>: 
+            Consectetur ducimus hic ab tempora provident veritatis? Optio iusto doloremque nihil dolorem nulla dolor doloremque quam consectetur. 
+            Quam voluptas veritatis unde nobis laboriosam minima? Numquam minima debitis eligendi consequuntur reiciendis.
+            <br>
+            <strong>Location</strong>: Mumbai
+        ";
+        $description = collapser($collapser_header, $collapser_content);
+        $output = array(
+            "job_description" => array(
+                "#prefix" => "<div id='job-description'>",
+                "#markup" => $description,
+                "#suffix" => "</div>",
+            ),
+            "application_form" => array(
+                "#type" => "markup",
+                "#markup" => drupal_render(drupal_get_form("job_portal_application_form")),
+            ),
+        );
+        return $output;
+    }
+
+    /* helper functions */
+    function collapser($title="", $content="", $description="") {
+        return "
+            <fieldset id='fieldset-id' class='collapsible'>
+                <legend><span class='fieldset-legend'>{$title}</span></legend>
+                <div class='fieldset-wrapper'>
+                    <div class='fieldset-description'>{$description}</div>
+                    {$content}
+                </div>
+            </fieldset>
+        ";
+    }
+
+    function required_star() {
+        return "<span class='form-required' title='This field is required.'> *</span>";
+    }
+
+    function send_mail_attachment($from, $to, $cc, $bcc, $subject, $message, $file) {
+        // $file should include path and filename
+        $filename = basename($file);
+        $file_size = filesize($file);
+        $content = chunk_split(base64_encode(file_get_contents($file))); 
+        $uid = md5(uniqid(time()));
+        $from = str_replace(array("\r", "\n"), '', $from); // to prevent email injection
+        $header = "From: ".$from."\r\n"
+            ."Cc: ".$cc."\r\n"
+            ."Bcc: ".$bcc."\r\n"
+            ."MIME-Version: 1.0\r\n"
+            ."Content-Type: multipart/mixed; boundary=\"".$uid."\"\r\n\r\n"
+            ."This is a multi-part message in MIME format.\r\n" 
+            ."--".$uid."\r\n"
+            ."Content-type: text/html; charset=UTF-8; format=flowed\r\n"
+            ."Content-Transfer-Encoding: 7bit\r\n\r\n"
+            .$message."\r\n\r\n"
+            ."--".$uid."\r\n"
+            ."Content-Type: application/octet-stream; name=\"".$filename."\"\r\n"
+            ."Content-Transfer-Encoding: base64\r\n"
+            ."Content-Disposition: attachment; filename=\"".$filename."\"\r\n\r\n"
+            .$content."\r\n\r\n"
+            ."--".$uid."--"; 
+        return mail($to, $subject, "", $header);
+    }
+?>
