@@ -1,0 +1,8 @@
+#job-application input[type=text],
+#job-application select {
+    width: 55%;
+}
+#job-description legend,
+#job-application legend {
+    text-align: center;
+}

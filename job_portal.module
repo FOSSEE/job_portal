@@ -31,7 +31,7 @@
             "#title" => t("Job Position"),
             "#description" => t("Select the position for which you are applying."),
             "#options" => get_jobs_available("options"),
-            "#empty_value" => "Select a position",
+            "#empty_option" => t("--- Select a position ---"),
             "#required" => TRUE,
         );
         $form["wrapper"]["name"] = array(
@@ -122,6 +122,8 @@
             ->condition("id", $v["position"])
             ->execute()->fetchObject();
         $emails = $emails->notify;
+        $position = get_jobs_available("options");
+        $position = $position[$v["position"]];
         
         /* preparing to send mail */
         $from = "jayaram@iitb.ac.in";
@@ -131,7 +133,7 @@
         $subject = "Job Application - Python Developer";
         $message = "
             <p><strong>{$v['name']}</strong> has applied for 
-            the post of <strong>Python Developer</strong>.</p>
+            the post of <strong>{$position}</strong>.</p>
             <table border='1' width='740px'>
                 <tr><td>Name</td><td>{$v['name']}</td></tr>
                 <tr><td>Contact</td><td>{$v['contact']}</td></tr>
@@ -174,8 +176,9 @@
                 "#suffix" => "</div>",
             ),
             "application_form" => array(
-                "#type" => "markup",
+                "#prefix" => "<div id='job-application'>",
                 "#markup" => drupal_render(drupal_get_form("job_portal_application_form")),
+                "#suffix" => "</div>",
             ),
         );
         return $output;

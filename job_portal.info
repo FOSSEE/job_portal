@@ -2,3 +2,6 @@ name = Job portal
 description = Job portal for FOSSEE recruitments.
 package = Job Portal
 core = 7.x
+
+stylesheets[all][] = css/base.css
+stylesheets[all][] = css/main.css
