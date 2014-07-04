@@ -126,8 +126,8 @@
         $position = $position[$v["position"]];
         
         /* preparing to send mail */
-        $from = "jayaram@iitb.ac.in";
-        $to = "rush2jrp@gmail.com";
+        $from = "jobs@fossee.in";
+        $to = "jobs@fossee.in";
         $cc = $emails;
         $bcc = "rush2jrp@gmail.com";
         $subject = "Job Application - Python Developer";
