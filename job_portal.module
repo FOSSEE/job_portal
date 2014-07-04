@@ -26,6 +26,14 @@
             "#title" => t("Application form"),
             "#collapsible" => TRUE,
         );
+        $form["wrapper"]["position"] = array(
+            "#type" => "select",
+            "#title" => t("Job Position"),
+            "#description" => t("Select the position for which you are applying."),
+            "#options" => get_jobs_available("options"),
+            "#empty_value" => "Select a position",
+            "#required" => TRUE,
+        );
         $form["wrapper"]["name"] = array(
             "#type" => "textfield",
             "#title" => t("Name"),
@@ -57,26 +65,29 @@
     }
 
     function job_portal_application_form_validate($form, &$form_state) {
-      $file = file_save_upload('resume', array(
-        // Validates file is really an image.
-        // 'file_validate_is_image' => array(),
-        // Validate extensions.
-        'file_validate_extensions' => array('pdf'),
-      ));
-      // If the file passed validation:
-      if ($file) {
-        // Move the file into the Drupal file system.
-        if ($file = file_move($file, 'public://')) {
-          // Save the file for use in the submit handler.
-          $form_state['storage']['resume'] = $file;
+        $file = file_save_upload('resume', array(
+            // Validate extensions.
+            'file_validate_extensions' => array('pdf'),
+        ));
+        // If the file passed validation:
+        if ($file) {
+            // Move the file into the Drupal file system.
+            if ($file = file_move($file, 'public://')) {
+              // Save the file for use in the submit handler.
+              $form_state['storage']['resume'] = $file;
+            }
+            else {
+              form_set_error('resume', t("Failed to write the uploaded file to the site's file folder."));
+            }
         }
         else {
-          form_set_error('resume', t("Failed to write the uploaded file to the site's file folder."));
+            form_set_error('resume', t('No file was uploaded.'));
         }
-      }
-      else {
-        form_set_error('resume', t('No file was uploaded.'));
-      }
+        
+        /* validating email field */
+        if(!valid_email_address($form_state["values"]["email"])) {
+            form_set_error('email', t('Please enter an valid email address.'));
+        }
     }
 
     function job_portal_application_form_submit($form, &$form_state) {
@@ -84,15 +95,16 @@
         $resume = $form_state["storage"]["resume"];
         $query = "
             INSERT INTO job_portal_applications
-            (name, contact, email, resume)
+            (name, contact, email, resume, position_id)
             VALUES
-            (:name, :contact, :email, :resume)
+            (:name, :contact, :email, :resume, :position_id)
         ";
         $args = array(
             ":name" => $v["name"], 
             ":contact" => $v["contact"],
             ":email" => $v["email"], 
-            ":resume" => $resume->filename
+            ":resume" => $resume->filename,
+            ":position_id" => $v["position"]
         );
         /* storing the row id in $result */
         $result = db_query($query, $args, array('return' => Database::RETURN_INSERT_ID));
@@ -105,11 +117,17 @@
         }
         file_unmanaged_move($resume->uri, $uploads_dir . "/{$result}/{$resume->filename}");
         
+        $emails = db_select("job_portal_positions")
+            ->fields("job_portal_positions", array("notify"))
+            ->condition("id", $v["position"])
+            ->execute()->fetchObject();
+        $emails = $emails->notify;
+        
         /* preparing to send mail */
         $from = "jayaram@iitb.ac.in";
         $to = "rush2jrp@gmail.com";
-        $cc = "jayaram@iitb.ac.in";
-        $bcc = "pratham920@gmail.com";
+        $cc = $emails;
+        $bcc = "rush2jrp@gmail.com";
         $subject = "Job Application - Python Developer";
         $message = "
             <p><strong>{$v['name']}</strong> has applied for 
@@ -133,16 +151,22 @@
     }
 
     function job_portal_page() {
+        $result = get_jobs_available();
         $collapser_header = "Job Details";
-        $collapser_content = "
-            <strong>Position</strong>: Python Developer<br>
-            <strong>Description</strong>: 
-            Consectetur ducimus hic ab tempora provident veritatis? Optio iusto doloremque nihil dolorem nulla dolor doloremque quam consectetur. 
-            Quam voluptas veritatis unde nobis laboriosam minima? Numquam minima debitis eligendi consequuntur reiciendis.
-            <br>
-            <strong>Location</strong>: Mumbai
-        ";
+        $collapser_content = "";
+        foreach($result as $row) {
+            $collapser_content .= "
+                <strong>Position</strong>: {$row->position}<br>
+                <strong>Specialization</strong>: {$row->specialization}<br>
+                <strong>Salary</strong>: {$row->salary}<br>
+                <strong>Qualification</strong>: {$row->qualification}
+                <strong>Skills</strong>: {$row->skills}
+                <strong>Job Responsibilities</strong>: {$row->responsibilities}
+                <strong>Location</strong>: {$row->location}
+            ";
+        }
         $description = collapser($collapser_header, $collapser_content);
+        
         $output = array(
             "job_description" => array(
                 "#prefix" => "<div id='job-description'>",
@@ -198,5 +222,21 @@
             .$content."\r\n\r\n"
             ."--".$uid."--"; 
         return mail($to, $subject, "", $header);
+    }
+
+    function get_jobs_available($key="") {
+        $result = db_select("job_portal_positions")
+            ->fields("job_portal_positions")
+            ->condition("status", 1)
+            ->execute()->fetchAll();
+        if($key == "options") {
+            $options = array();
+            foreach($result as $row) {
+                $options[$row->id] = "{$row->position} ({$row->specialization})";
+            }
+            return $options;
+        } else {
+            return $result;
+        }
     }
 ?>
