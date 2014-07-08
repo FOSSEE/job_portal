@@ -16,6 +16,12 @@
             "access arguments" => array("access job_portal"),
             "type" => MENU_CALLBACK,
         );
+        $items["jobs/apply"] = array(
+            "title" => "FOSSEE Job Portal - Application Form",
+            "page callback" => "job_portal_appplication_page",
+            "access arguments" => array("access job_portal"),
+            "type" => MENU_CALLBACK,
+        );
         return $items;
     }
 
@@ -164,8 +170,9 @@
                 <strong>Qualification</strong>: {$row->qualification}
                 <strong>Skills</strong>: {$row->skills}
                 <strong>Job Responsibilities</strong>: {$row->responsibilities}
-                <strong>Location</strong>: {$row->location}
+                <strong>Location</strong>: {$row->location}<br><br>
             ";
+            $collapser_content .= l("Apply Now", "/jobs/apply" , array("attributes" => array("class" => "btn btn-success")));
         }
         $description = collapser($collapser_header, $collapser_content);
         
@@ -175,6 +182,12 @@
                 "#markup" => $description,
                 "#suffix" => "</div>",
             ),
+        );
+        return $output;
+    }
+    
+    function job_portal_appplication_page() {
+        $output = array(
             "application_form" => array(
                 "#prefix" => "<div id='job-application'>",
                 "#markup" => drupal_render(drupal_get_form("job_portal_application_form")),
