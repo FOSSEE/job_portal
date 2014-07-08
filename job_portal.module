@@ -172,7 +172,7 @@
                 <strong>Job Responsibilities</strong>: {$row->responsibilities}
                 <strong>Location</strong>: {$row->location}<br><br>
             ";
-            $collapser_content .= l("Apply Now", "/jobs/apply" , array("attributes" => array("class" => "btn btn-success")));
+            $collapser_content .= l("Apply Now", "jobs/apply" , array("attributes" => array("class" => "btn btn-success")));
         }
         $description = collapser($collapser_header, $collapser_content);
         
