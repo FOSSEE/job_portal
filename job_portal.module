@@ -18,7 +18,13 @@
         );
         $items["jobs/apply"] = array(
             "title" => "FOSSEE Job Portal - Application Form",
-            "page callback" => "job_portal_appplication_page",
+            "page callback" => "job_portal_application_page",
+            "access arguments" => array("access job_portal"),
+            "type" => MENU_CALLBACK,
+        );
+        $items["jobs/view-applications"] = array(
+            "title" => "FOSSEE Job Portal - View Applications",
+            "page callback" => "job_portal_view_application_page",
             "access arguments" => array("access job_portal"),
             "type" => MENU_CALLBACK,
         );
@@ -186,11 +192,74 @@
         return $output;
     }
     
-    function job_portal_appplication_page() {
+    function job_portal_application_page() {
         $output = array(
             "application_form" => array(
                 "#prefix" => "<div id='job-application'>",
                 "#markup" => drupal_render(drupal_get_form("job_portal_application_form")),
+                "#suffix" => "</div>",
+            ),
+        );
+        return $output;
+    }
+
+    function job_portal_view_application_page($position_id=0) {
+        $markup = "";
+        if($position_id) {
+            $result = db_select("job_portal_applications")
+                ->fields("job_portal_applications")
+                ->condition("position_id", $position_id)
+                ->execute()->fetchAll();
+            $headers = array(
+                "#", "Name", "Time", "Download"
+            );
+            $rows = array();
+            $i = 1;
+            foreach($result as $row) {
+                $item = array(
+                    $i,
+                    $row->name,
+                    $row->time,
+                    l("{$row->resume}", "uploads/resumes/{$row->id}/{$row->resume}")
+                );
+                array_push($rows, $item);
+                $i++;
+            }
+            $job = db_select("job_portal_positions")
+                ->fields("job_portal_positions")
+                ->condition("id", $position_id)
+                ->execute()->fetchObject();
+            $markup .= l("<< Back to the list of open positions", "jobs/view-applications");
+            $markup .= "<h5><u>{$job->position} ({$job->specialization}) - List of applications</u></h5>";
+            $markup .= bootstrap_table($headers, $rows);
+        } else {
+            /* List all the job positions.
+             * Change the condition later based on end date.
+            */
+            $result = db_select("job_portal_positions")
+                ->fields("job_portal_positions")
+                ->condition("status", 1)
+                ->execute()->fetchAll();
+            $headers = array(
+                "#", "Position", "Time", "Action",
+            );
+            $rows = array();
+            foreach($result as $row) {
+                $item = array(
+                    $row->id,
+                    $row->position,
+                    $row->time,
+                    l("View applications", "jobs/view-applications/{$row->id}")
+                );
+                array_push($rows, $item);
+            }
+            $markup .= "<h5><u>List of job openings</u></h5>";
+            $markup .= bootstrap_table($headers, $rows);
+        }
+        $output = array(
+            "positions_list" => array(
+                "#prefix" => "<div id='positions-list'>",
+                "#markup" => $markup,
                 "#suffix" => "</div>",
             ),
         );
@@ -254,5 +323,27 @@
         } else {
             return $result;
         }
+    }
+
+    function bootstrap_table($headers, $rows) {
+        $thead = "";
+        $tbody = "";
+        foreach($headers as $header) {
+            $thead .= "<th>{$header}</th>";
+        }
+        foreach($rows as $row) {
+            $tbody .= "<tr>";
+            foreach($row as $data) {
+                $tbody .= "<td>{$data}</td>";
+            }
+            $tbody .= "</tr>";
+        }
+        $table = "
+            <table class='table table-bordered table-hover'>
+                <thead>{$thead}</thead>
+                <tbody>{$tbody}</tbody>
+            </table>
+        ";
+        return $table;
     }
 ?>
