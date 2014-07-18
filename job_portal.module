@@ -31,7 +31,7 @@
         return $items;
     }
 
-    function job_portal_application_form($form, &$form_state) {
+    function job_portal_application_form($form, &$form_state, $position_id=0) {
         $form = array();
         $form["wrapper"] = array(
             "#type" => "fieldset",
@@ -44,6 +44,7 @@
             "#description" => t("Select the position for which you are applying."),
             "#options" => get_jobs_available("options"),
             "#empty_option" => t("--- Select a position ---"),
+            "#default_value" => $position_id,
             "#required" => TRUE,
         );
         $form["wrapper"]["name"] = array(
@@ -181,10 +182,11 @@ FOSSEE Team
 
     function job_portal_page() {
         $result = get_jobs_available();
-        $collapser_header = "Job Details";
-        $collapser_content = "";
+        $output = "";
+        $i = 1;
         foreach($result as $row) {
-            $collapser_content .= "
+            $collapser_header = "#{$i} - Job Details";
+            $collapser_content = "
                 <strong>Position</strong>: {$row->position}<br>
                 <strong>Specialization</strong>: {$row->specialization}<br>
                 <strong>Salary</strong>: {$row->salary}<br>
@@ -193,25 +195,37 @@ FOSSEE Team
                 <strong>Job Responsibilities</strong>: {$row->responsibilities}
                 <strong>Location</strong>: {$row->location}<br><br>
             ";
-            $collapser_content .= l("Apply Now", "jobs/apply" , array("attributes" => array("class" => "btn btn-success")));
+            $collapser_content .= "<center>"; 
+            $collapser_content .= l("<i class='icon icon-white icon-briefcase'></i> Apply Now", "jobs/apply/{$row->id}" , array(
+                "attributes" => array("class" => "btn btn-success btn-large"),
+                "html" => TRUE,
+            ));
+            $collapser_content .= "</center>";
+            $output .= collapser($collapser_header, $collapser_content);
+            $i++;
         }
-        $description = collapser($collapser_header, $collapser_content);
         
         $output = array(
             "job_description" => array(
                 "#prefix" => "<div id='job-description'>",
-                "#markup" => $description,
+                "#markup" => $output,
                 "#suffix" => "</div>",
             ),
         );
         return $output;
     }
     
-    function job_portal_application_page() {
+    function job_portal_application_page($position_id=0) {
+        $application_form = "";
+        if($position_id) {
+            $application_form = drupal_render(drupal_get_form("job_portal_application_form", $position_id));
+        } else {
+            $application_form = drupal_render(drupal_get_form("job_portal_application_form"));
+        }
         $output = array(
             "application_form" => array(
                 "#prefix" => "<div id='job-application'>",
-                "#markup" => drupal_render(drupal_get_form("job_portal_application_form")),
+                "#markup" => $application_form,
                 "#suffix" => "</div>",
             ),
         );
@@ -281,11 +295,21 @@ FOSSEE Team
         return $output;
     }
 
+    function job_portal_init() {
+        drupal_add_js("misc/form.js");
+        drupal_add_js("misc/collapse.js");
+    }
+
     /* helper functions */
     function collapser($title="", $content="", $description="") {
         return "
             <fieldset id='fieldset-id' class='collapsible'>
-                <legend><span class='fieldset-legend'>{$title}</span></legend>
+                <legend>
+                    <a class='fieldset-title' href='#'>
+                        <span class='fieldset-legend'>{$title}</span>
+                    </a>
+                    <span class='summary'></span>
+                </legend>
                 <div class='fieldset-wrapper'>
                     <div class='fieldset-description'>{$description}</div>
                     {$content}
@@ -389,5 +413,4 @@ FOSSEE Team
             return FALSE;
         }
     }
-
 ?>

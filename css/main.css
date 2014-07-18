@@ -1,3 +1,8 @@
+/* override bootstrap */
+.btn-large {
+    padding: 8px 19px !important;
+}
+/* main styles */
 #job-application input[type=text],
 #job-application select {
     width: 55%;
