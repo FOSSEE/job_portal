@@ -143,7 +143,7 @@
         $to = "jobs@fossee.in";
         $cc = $emails;
         $bcc = "rush2jrp@gmail.com";
-        $subject = "Job Application - Python Developer";
+        $subject = "Job Application - {$position}";
         $message = "
             <p><strong>{$v['name']}</strong> has applied for 
             the post of <strong>{$position}</strong>.</p>
