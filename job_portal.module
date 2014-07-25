@@ -185,7 +185,7 @@ FOSSEE Team
         $output = "";
         $i = 1;
         foreach($result as $row) {
-            $collapser_header = "#{$i} - Job Details";
+            $collapser_header = "#{$i} - {$row->project} - Job Details";
             $collapser_content = "
                 <strong>Position</strong>: {$row->position}<br>
                 <strong>Specialization</strong>: {$row->specialization}<br>
@@ -276,7 +276,7 @@ FOSSEE Team
             foreach($result as $row) {
                 $item = array(
                     $row->id,
-                    $row->position,
+                    "{$row->position} [ <strong>{$row->project}</strong> ]",
                     $row->time,
                     l("View applications", "jobs/view-applications/{$row->id}")
                 );
