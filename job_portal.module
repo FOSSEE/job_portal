@@ -5,6 +5,10 @@
                 "title" => t("Access Job Portal"),
                 "description" => t("Allows users to view job postings.")
             ),
+            "manage job_portal" => array(
+                "title" => t("Manage Job Portal"),
+                "description" => t("Allows users to manage job postings.")
+            ),
         );
     }
 
@@ -25,7 +29,7 @@
         $items["jobs/view-applications"] = array(
             "title" => "FOSSEE Job Portal - View Applications",
             "page callback" => "job_portal_view_application_page",
-            "access arguments" => array("access job_portal"),
+            "access arguments" => array("manage job_portal"),
             "type" => MENU_CALLBACK,
         );
         return $items;
