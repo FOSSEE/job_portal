@@ -11,3 +11,8 @@
 #job-application legend {
     text-align: center;
 }
+#quick-links {
+    position: fixed;
+    left: 45px;
+    top: 250px;
+}

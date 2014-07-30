@@ -185,9 +185,11 @@ FOSSEE Team
     }
 
     function job_portal_page() {
-        $result = get_jobs_available();
-        $output = "";
+        $output = ""; 
+        $quick_links = "";
         $i = 1;
+        
+        $result = get_jobs_available();
         foreach($result as $row) {
             $collapser_header = "#{$i} - {$row->project} - Job Details";
             $collapser_content = "
@@ -205,11 +207,17 @@ FOSSEE Team
                 "html" => TRUE,
             ));
             $collapser_content .= "</center>";
-            $output .= collapser($collapser_header, $collapser_content);
+            $output .= collapser($collapser_header, $collapser_content, "", $i);
+            $quick_links .= "<a class='badge quick' data-toggle='tooltip' data-placement='right' title='{$row->project}' href='#fieldset-id-{$i}'>{$i}</a><br>";
             $i++;
         }
         
         $output = array(
+            "quick_links" => array(
+                "#prefix" => "<div id='quick-links'>",
+                "#markup" => $quick_links,
+                "#suffix" => "</div>",
+            ),
             "job_description" => array(
                 "#prefix" => "<div id='job-description'>",
                 "#markup" => $output,
@@ -302,12 +310,22 @@ FOSSEE Team
     function job_portal_init() {
         drupal_add_js("misc/form.js");
         drupal_add_js("misc/collapse.js");
+        drupal_add_js(
+            drupal_get_path('module', 'job_portal') . '/js/smooth_scroll.js',
+            array(
+                'group' => JS_THEME,
+                'weight' => 20,
+                'every_page' => TRUE,
+                'cache' => TRUE,
+                'scope' => 'header',
+            )
+        );
     }
 
     /* helper functions */
-    function collapser($title="", $content="", $description="") {
+    function collapser($title="", $content="", $description="", $key="") {
         return "
-            <fieldset id='fieldset-id' class='collapsible'>
+            <fieldset id='fieldset-id-{$key}' class='collapsible'>
                 <legend>
                     <a class='fieldset-title' href='#'>
                         <span class='fieldset-legend'>{$title}</span>
