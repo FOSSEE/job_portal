@@ -45,7 +45,7 @@
             "access arguments" => array("manage download_application"),
             "type" => MENU_CALLBACK
             
-  );
+        );
         
         return $items;
     }
@@ -292,7 +292,7 @@ FOSSEE Team
                 $zipname = str_replace(' ','_',strtolower($job->project.'_'.$job->position.'.zip'));
                 $zip = new ZipArchive;
                 $zip->open($zipname, ZipArchive::CREATE); 
-                $zip->addFile($files, str_replace('.','_',str_replace(' ','_',strtolower("/{$row->id} {$row->name}" ))) . ".pdf");   
+                $zip->addFile($files, str_replace('.','_',str_replace(' ','_',strtolower("{$row->id} {$row->name}" ))) . ".pdf");   
                 $zip->close();
   
                 array_push($rows, $item);
