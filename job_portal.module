@@ -5,9 +5,15 @@
                 "title" => t("Access Job Portal"),
                 "description" => t("Allows users to view job postings.")
             ),
+
+           
             "manage job_portal" => array(
                 "title" => t("Manage Job Portal"),
                 "description" => t("Allows users to manage job postings.")
+            ),
+            "manage download_application" => array(
+                "title" => t("Manage Download Portal"),
+                "description" => t("Allows users to download job applications.")
             ),
         );
     }
@@ -32,6 +38,15 @@
             "access arguments" => array("manage job_portal"),
             "type" => MENU_CALLBACK,
         );
+        $items["jobs/downloads_applications"] = array(
+            "title" => "Application Download",
+            "description" => "Applications Download", 
+            "page callback" => "job_portal_downloads_applications_page",
+            "access arguments" => array("manage download_application"),
+            "type" => MENU_CALLBACK
+            
+  );
+        
         return $items;
     }
 
@@ -261,16 +276,36 @@ FOSSEE Team
                     $i,
                     $row->name,
                     $row->time,
-                    l("{$row->resume}", "uploads/resumes/{$row->id}/{$row->resume}")
+
+                    l(str_replace('.', '_',str_replace(' ', '_',strtolower("{$row->id}_{$row->name}"))) . '.pdf', "uploads/resumes/{$row->id}/{$row->resume}")
+                
                 );
+
+                $job = db_select("job_portal_positions")
+                ->fields("job_portal_positions")
+                ->condition("id", $position_id)
+                ->execute()->fetchObject();
+
+        $base_path= $_SERVER['DOCUMENT_ROOT'] . base_path(); 
+        $downloads_dir = "uploads/resumes/{$row->id}/{$row->resume}";
+        $files = $downloads_dir; 
+        $zipname = str_replace(' ','_',strtolower($job->project.'_'.$job->position.'.zip'));
+        $zip = new ZipArchive;
+        $zip->open($zipname, ZipArchive::CREATE); 
+        $zip->addFile($files,str_replace('.','_',str_replace(' ','_',strtolower("/{$row->name}" ))) . ".pdf");   
+        $zip->close();
+  
                 array_push($rows, $item);
                 $i++;
-            }
+        }
             $job = db_select("job_portal_positions")
                 ->fields("job_portal_positions")
                 ->condition("id", $position_id)
                 ->execute()->fetchObject();
             $markup .= l("<< Back to the list of open positions", "jobs/view-applications");
+            $markup .= "<div style='float:right'>";
+            $markup .= l("Download all applications", "jobs/downloads_applications/{$row->position_id}/{$row->id}");
+            $markup .= "</div>";  
             $markup .= "<h5><u>{$job->position} ({$job->specialization}) - List of applications</u></h5>";
             $markup .= bootstrap_table($headers, $rows);
         } else {
@@ -279,7 +314,7 @@ FOSSEE Team
             */
             $result = db_select("job_portal_positions")
                 ->fields("job_portal_positions")
-                ->condition("status", 1)
+                ->condition("status", 0, '<>')
                 ->execute()->fetchAll();
             $headers = array(
                 "#", "Position", "Time", "Action",
@@ -306,12 +341,31 @@ FOSSEE Team
         );
         return $output;
     }
+function job_portal_downloads_applications_page($position_id){
+        
+    
+         $job = db_select("job_portal_positions")
+                ->fields("job_portal_positions")
+                ->condition("id", $position_id)
+                ->execute()->fetchObject();
+
+        $base_path= $_SERVER['DOCUMENT_ROOT'] . base_path();      
+        $zipname = str_replace(' ','_',strtolower($job->project.'_'.$job->position.'.zip'));
+
+        header('Content-Type: application/zip');
+        header('Content-disposition: attachment; filename= "'.str_replace(' ','_',
+               strtolower($job->project.'_'.$job->position.'.zip')));
+        header('Content-Length: ' . filesize($zipname));
+        readfile($zipname);
+
+  
+}
 
     function job_portal_init() {
         drupal_add_js("misc/form.js");
         drupal_add_js("misc/collapse.js");
         drupal_add_js(
-            drupal_get_path('module', 'job_portal') . '/js/smooth_scroll.js',
+        drupal_get_path('module', 'job_portal') . '/js/smooth_scroll.js',
             array(
                 'group' => JS_THEME,
                 'weight' => 20,
