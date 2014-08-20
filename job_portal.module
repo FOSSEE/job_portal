@@ -282,22 +282,23 @@ FOSSEE Team
                 );
 
                 $job = db_select("job_portal_positions")
-                ->fields("job_portal_positions")
-                ->condition("id", $position_id)
-                ->execute()->fetchObject();
+                    ->fields("job_portal_positions")
+                    ->condition("id", $position_id)
+                    ->execute()->fetchObject();
 
-        $base_path= $_SERVER['DOCUMENT_ROOT'] . base_path(); 
-        $downloads_dir = "uploads/resumes/{$row->id}/{$row->resume}";
-        $files = $downloads_dir; 
-        $zipname = str_replace(' ','_',strtolower($job->project.'_'.$job->position.'.zip'));
-        $zip = new ZipArchive;
-        $zip->open($zipname, ZipArchive::CREATE); 
-        $zip->addFile($files,str_replace('.','_',str_replace(' ','_',strtolower("/{$row->name}" ))) . ".pdf");   
-        $zip->close();
+                $base_path= $_SERVER['DOCUMENT_ROOT'] . base_path(); 
+                $downloads_dir = "uploads/resumes/{$row->id}/{$row->resume}";
+                $files = $downloads_dir; 
+                $zipname = str_replace(' ','_',strtolower($job->project.'_'.$job->position.'.zip'));
+                $zip = new ZipArchive;
+                $zip->open($zipname, ZipArchive::CREATE); 
+                $zip->addFile($files, str_replace('.','_',str_replace(' ','_',strtolower("/{$row->id} {$row->name}" ))) . ".pdf");   
+                $zip->close();
   
                 array_push($rows, $item);
                 $i++;
-        }
+            }
+
             $job = db_select("job_portal_positions")
                 ->fields("job_portal_positions")
                 ->condition("id", $position_id)
@@ -341,25 +342,22 @@ FOSSEE Team
         );
         return $output;
     }
-function job_portal_downloads_applications_page($position_id){
-        
-    
-         $job = db_select("job_portal_positions")
-                ->fields("job_portal_positions")
-                ->condition("id", $position_id)
-                ->execute()->fetchObject();
 
-        $base_path= $_SERVER['DOCUMENT_ROOT'] . base_path();      
-        $zipname = str_replace(' ','_',strtolower($job->project.'_'.$job->position.'.zip'));
+    function job_portal_downloads_applications_page($position_id){
+             $job = db_select("job_portal_positions")
+                    ->fields("job_portal_positions")
+                    ->condition("id", $position_id)
+                    ->execute()->fetchObject();
 
-        header('Content-Type: application/zip');
-        header('Content-disposition: attachment; filename= "'.str_replace(' ','_',
-               strtolower($job->project.'_'.$job->position.'.zip')));
-        header('Content-Length: ' . filesize($zipname));
-        readfile($zipname);
+            $base_path= $_SERVER['DOCUMENT_ROOT'] . base_path();      
+            $zipname = str_replace(' ','_',strtolower($job->project.'_'.$job->position.'.zip'));
 
-  
-}
+            header('Content-Type: application/zip');
+            header('Content-disposition: attachment; filename= "'.str_replace(' ','_',
+                   strtolower($job->project.'_'.$job->position.'.zip')));
+            header('Content-Length: ' . filesize($zipname));
+            readfile($zipname);
+    }
 
     function job_portal_init() {
         drupal_add_js("misc/form.js");
