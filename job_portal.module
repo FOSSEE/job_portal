@@ -265,6 +265,9 @@ FOSSEE Team
 
     function job_portal_view_application_page($position_id=0) {
         $markup = "";
+        if(array_key_exists("saved", $_GET)){
+            drupal_set_message("Selections saved successfully.", "success");
+        }
         if($position_id) {
             $result = db_select("job_portal_applications")
                 ->fields("job_portal_applications")
@@ -318,6 +321,16 @@ FOSSEE Team
             $markup .= "</div>";  
             $markup .= "<h5><u>{$job->position} ({$job->specialization}) - List of applications</u></h5>";
             $markup .= bootstrap_table($headers, $rows);
+            $markup .= l("Save Selections", "jobs/view-applications/",
+                array(
+                    "query" => array(
+                        "saved" => "true"
+                    ),
+                    "attributes" => array(
+                        "class" => "btn btn-primary"
+                    )
+                )
+            );
         } else {
             /* List all the job positions.
              * Change the condition later based on end date.

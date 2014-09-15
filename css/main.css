@@ -19,3 +19,6 @@
 .sync-msg {
     font-size: .8em;
 }
+.messages.success {
+    background: lightgreen;
+}
