@@ -5,8 +5,6 @@
                 "title" => t("Access Job Portal"),
                 "description" => t("Allows users to view job postings.")
             ),
-
-           
             "manage job_portal" => array(
                 "title" => t("Manage Job Portal"),
                 "description" => t("Allows users to manage job postings.")
@@ -45,6 +43,12 @@
             "access arguments" => array("manage download_application"),
             "type" => MENU_CALLBACK
             
+        );
+        $items["jobs/ajax"] = array(
+            "title" => "Ajax callbacks",
+            "page callback" => "job_portal_ajax",
+            "access arguments" => array("manage download_application"),
+            "type" => MENU_CALLBACK
         );
         
         return $items;
@@ -267,7 +271,7 @@ FOSSEE Team
                 ->condition("position_id", $position_id)
                 ->execute()->fetchAll();
             $headers = array(
-                "#", "Name", "Time", "Download"
+                "#", "Name", "Time", "Download", "Select"
             );
             $rows = array();
             $i = 1;
@@ -276,16 +280,21 @@ FOSSEE Team
                     $i,
                     $row->name,
                     $row->time,
-
-                    l(str_replace('.', '_',str_replace(' ', '_',strtolower("{$row->id}_{$row->name}"))) . '.pdf', "uploads/resumes/{$row->id}/{$row->resume}")
-                
+                    l(str_replace('.', '_',str_replace(' ', '_',strtolower("{$row->id}_{$row->name}"))) . '.pdf', "uploads/resumes/{$row->id}/{$row->resume}", array("attributes" => array("target" => "_blank",))),
                 );
-
+                
+                if($row->selected) {
+                    $check = "<input class='shortlist' type='checkbox' data-aid='{$row->id}' checked>";
+                } else {
+                    $check = "<input class='shortlist' type='checkbox' data-aid='{$row->id}'>";
+                }
+                array_push($item, $check);
+                
                 $job = db_select("job_portal_positions")
                     ->fields("job_portal_positions")
                     ->condition("id", $position_id)
                     ->execute()->fetchObject();
-
+                
                 $base_path= $_SERVER['DOCUMENT_ROOT'] . base_path(); 
                 $downloads_dir = "uploads/resumes/{$row->id}/{$row->resume}";
                 $files = $downloads_dir; 
@@ -359,11 +368,39 @@ FOSSEE Team
             readfile($zipname);
     }
 
+    function job_portal_ajax($item="", $key="") {
+        $data = "";
+        if($item == "shortlist") {
+            $query = "
+                UPDATE job_portal_applications
+                SET selected = !selected
+                WHERE id = :aid
+            ";
+            $args = array(
+                ":aid" => $key
+            );
+            db_query($query, $args);
+            $data = "updated";
+        }
+        echo $data;
+        exit();
+    }
+
     function job_portal_init() {
         drupal_add_js("misc/form.js");
         drupal_add_js("misc/collapse.js");
         drupal_add_js(
-        drupal_get_path('module', 'job_portal') . '/js/smooth_scroll.js',
+            drupal_get_path("module", "job_portal") . '/js/main.js',
+            array(
+                'group' => JS_THEME,
+                'weight' => 20,
+                'every_page' => TRUE,
+                'cache' => TRUE,
+                'scope' => 'header',
+            )
+        );
+        drupal_add_js(
+            drupal_get_path('module', 'job_portal') . '/js/smooth_scroll.js',
             array(
                 'group' => JS_THEME,
                 'weight' => 20,
