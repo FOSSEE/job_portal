@@ -1,3 +1,4 @@
+(function ($) {
 $(document).ready(function() {
     var basePath = Drupal.settings.basePath;
     var modPath = basePath + "jobs/";
@@ -14,4 +15,13 @@ $(document).ready(function() {
             }
         });
     });
+
+   $(this).on('click','#d_app',function (e){
+      if($shortlist.prop("checked") == false){
+         alert("Please select atleast one resume for download");
+         e.preventDefault();
+       }
+         console.log('####');
+    });
 });
+})(jQuery);
