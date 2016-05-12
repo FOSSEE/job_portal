@@ -126,7 +126,8 @@ input.form-submit:focus {
   margin-top: 2px;
 }
 .form-item label {
-  font-size: 0.929em;
+  font-size: 14px;
+   font-weight: bold;
 }
 .form-type-radio label,
 .form-type-checkbox label {
@@ -300,3 +301,4 @@ fieldset p {
     margin: 0 0 5px;
     text-align: left;
 }
+
