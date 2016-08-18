@@ -299,8 +299,9 @@ function job_portal_page()
 		$quick_links .= "<a class='badge quick' data-toggle='tooltip' data-placement='right' title='{$row->project}' href='#fieldset-id-{$i}'>{$i}</a><br>";
 		$i++;
 	} //$result as $row
-	$output .= "<p style='color:#000'></br> If your interest is to work on any other FOSS such as Python, OpenFOAM, Osdag, Sandhi, OpenModelica, eSim, Scilab, SBHS, DWSIM, FOSSEE-Netbook, etc, you may email your resumes to <a href='mailto:jobs@fossee.in'>jobs[at]fossee[dot]in</a></p>The email subject should contain:</p><ul><li>Your name</li><li>Position that you are applying for</li><li>FOSS that you wish to work on</li></ul>
-<p style='color:#000'>
+	$output .= "
+	<hr style='height: 10px;border: 0;box-shadow: 0 10px 10px -10px #8c8b8b inset;position: initial;'></hr>
+	<p style='color:#000'>
 <h3 class='page-title'>Semester Internships</h3>
 
 FOSSEE group at IIT Bombay aims to improve the quality of education with the use of open source software tools such as Scilab, Python, eSim, and Sandhi amongst others.
@@ -317,6 +318,39 @@ We have semester internships available with the following groups-
 </p>
 We invite coders/testers from any background to participate and contribute to this project as part of FOSSEE semester internship. To know more about the internship requirements, please read- <a href='https://goo.gl/OuHa2H' target='_blank'>https://goo.gl/OuHa2H</a>. If you have any doubts, please email <a href='mailto:toolbox@scilab.in'>toolbox[at]scilab[dot]in</a>.
 </p>
+<br>
+<hr style='border-top: 3px double #8c8b8b;position: initial;'></hr>
+<p style='color:#000'>
+<h3 class='page-title'>Projects</h3>
+<br>
+<strong>Project 1:</strong>
+<br><br>
+<span style='color:#000; text-align: justify;'>
+Nghdl is a FOSSEE product designed for providing mixed mode simulation. It does so by interfacing Ngspice and ghdl (both open source products themselves). The novelty of Nghdl is that the user can write a digital model in ghdl and put it as a dummy model in ngspice netlist, rather than going through the pain of writing a digital model in ngspice themselves. Whenever ngspice encounters such a model in netlist, it initiates a client-server connection with ghdl as server and ngspice as client, and ghdl will do all the computation for the digital model.
+<br><br>
+<strong>Problem Statement:</strong>
+There is a problem while trying to use multiple digital models in a single netlist. This is being done by setting up multiple client-server connections, running at different ports. The port numbers are determined by corresponding instance id's of each models which are specified in the netlist.
+<br><br>
+One of the reasons for this problem could be related to multiplexing, as the select function is returning 0 while trying to run multiple models.
+<br><br>
+<strong>Assignment:</strong> Find the root cause of the issue, produce necessary code or make changes to existing code and test the functionality.
+<br><br>
+<strong>Github Link:</strong> <a href='https://github.com/FOSSEE/nghdl/' target='_blank'>https://github.com/FOSSEE/nghdl/</a>
+<br><br>
+<strong>Skill Required:</strong>
+<br>
+C,Socket programing, good to have ghdl knowledge
+<br><br>
+<strong>Perks:</strong> Attractive Honorarium and FOSSEE Certificate shall be provided on successful completion of the task(s).
+<br><br>
+If you are interested, write to: <a href='mailto:jobs@fossee.in'>jobs[at]fossee[dot]in</a>
+</span>
+</p>
+<br>
+<hr style='border-top: 3px double #8c8b8b;position: initial;'></hr>
+<p style='color:#000'>
+<h3 class='page-title'>Jobs</h3>
+If your interest is to work on any other FOSS such as Python, OpenFOAM, Osdag, Sandhi, OpenModelica, eSim, Scilab, SBHS, DWSIM, FOSSEE-Netbook, etc, you may email your resumes to <a href='mailto:jobs@fossee.in'>jobs[at]fossee[dot]in</a></p>The email subject should contain:</p><ul><li>Your name</li><li>Position that you are applying for</li><li>FOSS that you wish to work on</li></ul>
 ";
 	$output = array(
 		"quick_links" => array(
