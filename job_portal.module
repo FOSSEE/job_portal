@@ -1,5 +1,4 @@
 <?php
-<<<<<<< HEAD
 /* hook menu */
 function job_portal_menu()
 {
