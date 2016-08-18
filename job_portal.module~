@@ -1,5 +1,4 @@
 <?php
-<<<<<<< HEAD
 /* hook menu */
 function job_portal_menu()
 {
@@ -738,3 +737,4 @@ function send_mail($from, $to, $subject, $message)
 		return FALSE;
 	}
 }
+
